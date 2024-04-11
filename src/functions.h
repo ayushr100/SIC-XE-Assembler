@@ -125,7 +125,7 @@ vector<block_data> BLOCK_DATA;
 string program_name;
 int program_length;
 
-string decimalToTwosComplement(int decimal_num, int hex_length) {
+string decimal_to_hex(int decimal_num, int hex_length) {
     // Check if the decimal number is negative
     if (decimal_num < 0) {
         // Convert negative decimal number to its 2's complement representation
@@ -144,7 +144,7 @@ string decimalToTwosComplement(int decimal_num, int hex_length) {
 }
 
 //utility function to check if operand is absolute
-bool check_operand_absolute(string operand){
+bool is_operand_absolute(string operand){
     for(int i=0; i<operand.size(); i++){
         if(operand[i]>='0' && operand[i]<='9') continue;
         else return false;            
@@ -152,7 +152,7 @@ bool check_operand_absolute(string operand){
     return true;
 }
 
-bool pass1_line_scraper(string line, string &label, string &opcode, string &operand) {
+bool process_line_pass1(string line, string &label, string &opcode, string &operand) {
    
     istringstream iss(line);
     vector<string> tokens;
@@ -203,7 +203,7 @@ struct text_record{
 
 vector<text_record> TEXT_RECORDS;
 
-bool pass2_line_scraper(string line, string &line_no, int &locctr, int &program_block_no, string &label, string &opcode, string &operand) {
+bool process_line_pass2(string line, string &line_no, int &locctr, int &program_block_no, string &label, string &opcode, string &operand) {
    
     istringstream iss(line);
     vector<string> tokens;
@@ -247,7 +247,7 @@ bool pass2_line_scraper(string line, string &line_no, int &locctr, int &program_
 }
 
 // Function to perform arithmetic operations.
-int performOperation(char operation, int operand1, int operand2) {
+int calculate(char operation, int operand1, int operand2) {
     switch (operation) {
         case '+': return operand1 + operand2;
         case '-': return operand1 - operand2;
@@ -300,7 +300,7 @@ int evaluateExpression(string expression) {
                 values.pop();
                 char op = operators.top();
                 operators.pop();
-                values.push(performOperation(op, operand1, operand2));
+                values.push(calculate(op, operand1, operand2));
             }
             // Pop the opening parenthesis.
             operators.pop();
@@ -319,7 +319,7 @@ int evaluateExpression(string expression) {
                 values.pop();
                 char op = operators.top();
                 operators.pop();
-                values.push(performOperation(op, operand1, operand2));
+                values.push(calculate(op, operand1, operand2));
             }
             // Push current operator to 'operators'.
             operators.push(expression[i]);
@@ -335,7 +335,7 @@ int evaluateExpression(string expression) {
         values.pop();
         char op = operators.top();
         operators.pop();
-        values.push(performOperation(op, operand1, operand2));
+        values.push(calculate(op, operand1, operand2));
     }
 
     // Top of 'values' stack contains the result of the expression.
@@ -343,7 +343,7 @@ int evaluateExpression(string expression) {
 }
 
 
-void handle_expression(string operand,int &value, bool &isValid, bool & isRelative){
+void expression_handler(string operand,int &value, bool &isValid, bool & isRelative){
     bool isExpression=false;
     //break operand with + , - , * , / 
     vector<string> tokens;
@@ -373,7 +373,7 @@ void handle_expression(string operand,int &value, bool &isValid, bool & isRelati
             check+=x;
             continue;
         } 
-        else if(check_operand_absolute(x)){
+        else if(is_operand_absolute(x)){
            check+="a";
         }
         else if(SYMTAB.find(x)==SYMTAB.end()){
@@ -432,7 +432,7 @@ void handle_expression(string operand,int &value, bool &isValid, bool & isRelati
             generated_expression+=x;
             continue;
         }
-        if(check_operand_absolute(x)){
+        if(is_operand_absolute(x)){
             generated_expression+=("("+x+")");
         }
         else{
@@ -444,7 +444,7 @@ void handle_expression(string operand,int &value, bool &isValid, bool & isRelati
 }
 
 
-string handleFormat2(string opcode, string operand, bool &error_flag) {
+string process_format2(string opcode, string operand, bool &error_flag) {
     vector<string> tokens;
     string token;
     for(int i=0;i<operand.size();i++){
@@ -467,7 +467,7 @@ string handleFormat2(string opcode, string operand, bool &error_flag) {
         }
 
         int operand1;
-        if(check_operand_absolute(tokens[0])) {
+        if(is_operand_absolute(tokens[0])) {
             operand1 = stoi(tokens[0], nullptr, 10);
         }
         else if(REGISTER_SET.find(tokens[0]) != REGISTER_SET.end()) {
@@ -486,7 +486,7 @@ string handleFormat2(string opcode, string operand, bool &error_flag) {
         }
 
         int operand2;
-        if(check_operand_absolute(tokens[1])) {
+        if(is_operand_absolute(tokens[1])) {
             operand1 = stoi(tokens[1], nullptr, 10);
         }
         else if(REGISTER_SET.find(tokens[1]) != REGISTER_SET.end()) {
@@ -504,7 +504,7 @@ string handleFormat2(string opcode, string operand, bool &error_flag) {
             return "";
         }
 
-        return decimalToTwosComplement(operand1, 1) + decimalToTwosComplement(operand2, 1);
+        return decimal_to_hex(operand1, 1) + decimal_to_hex(operand2, 1);
     }
     else if(opcode == "SHIFTL" || opcode == "SHIFTR") {
         if(tokens.size() != 2) {
@@ -513,7 +513,7 @@ string handleFormat2(string opcode, string operand, bool &error_flag) {
         }
 
         int operand1;
-        if(check_operand_absolute(tokens[0])) {
+        if(is_operand_absolute(tokens[0])) {
             operand1 = stoi(tokens[0], nullptr, 10);
         }
         else if(REGISTER_SET.find(tokens[0]) != REGISTER_SET.end()) {
@@ -532,7 +532,7 @@ string handleFormat2(string opcode, string operand, bool &error_flag) {
         }
 
         int operand2;
-        if(check_operand_absolute(tokens[1])) {
+        if(is_operand_absolute(tokens[1])) {
             operand2 = stoi(tokens[1], nullptr, 10);
         }
         else if(SYMTAB.find(tokens[1]) != SYMTAB.end()) {
@@ -548,7 +548,7 @@ string handleFormat2(string opcode, string operand, bool &error_flag) {
             return "";
         }
 
-        return decimalToTwosComplement(operand1, 1) + decimalToTwosComplement(operand2, 1);
+        return decimal_to_hex(operand1, 1) + decimal_to_hex(operand2, 1);
     }
     else if(opcode == "TIXR" || opcode == "CLEAR") {
         if(tokens.size() != 1) {
@@ -557,7 +557,7 @@ string handleFormat2(string opcode, string operand, bool &error_flag) {
         }
 
         int operand1;
-        if(check_operand_absolute(tokens[0])) {
+        if(is_operand_absolute(tokens[0])) {
             operand1 = stoi(tokens[0], nullptr, 10);
         }
         else if(REGISTER_SET.find(tokens[0]) != REGISTER_SET.end()) {
@@ -575,7 +575,7 @@ string handleFormat2(string opcode, string operand, bool &error_flag) {
             return "";
         }
 
-        return decimalToTwosComplement(operand1, 1) + "0";
+        return decimal_to_hex(operand1, 1) + "0";
     }
     else {
         if(tokens.size() != 1) {
@@ -584,7 +584,7 @@ string handleFormat2(string opcode, string operand, bool &error_flag) {
         }
 
         int operand1;
-        if(check_operand_absolute(tokens[0])) {
+        if(is_operand_absolute(tokens[0])) {
             operand1 = stoi(tokens[0], nullptr, 10);
         }
         else if(SYMTAB.find(tokens[0]) != SYMTAB.end()) {
@@ -600,7 +600,7 @@ string handleFormat2(string opcode, string operand, bool &error_flag) {
             return "";
         }
 
-        return decimalToTwosComplement(operand1, 2) + "0";
+        return decimal_to_hex(operand1, 2) + "0";
     }
 }
 
@@ -648,10 +648,10 @@ string write_in_listing_file(string line_no, string locctr, string program_block
     return line;
 }
 
-void write_tables(){
+void write_in_tables(){
     ofstream symbol_table("./../data/SYMTAB.txt");
     symbol_table<<"SYMBOL\t\tBLOCK_NO\tVALUE\t\tFLAG"<<endl;
-    symbol_table<<"====================================="<<endl;
+    symbol_table<<"----------------------------------"<<endl;
 
     for(auto x:SYMTAB){
         char c;
@@ -663,7 +663,7 @@ void write_tables(){
 
     ofstream block_table("./../data/BLOCKTAB.txt");
     block_table<<"BLOCK_NAME\tBLOCK_NO\tBLOCK_LENGTH\tSTART_ADDRESS"<<endl;
-    block_table<<"========================================================"<<endl;
+    block_table<<"--------------------------------------------------------"<<endl;
 
     for(auto x:BLOCKTABLE){
         block_table<<x.first<<"\t\t"<<x.second.block_no<<"\t\t\t"<<x.second.block_length<<"\t\t\t\t"<<x.second.start_address<<endl;

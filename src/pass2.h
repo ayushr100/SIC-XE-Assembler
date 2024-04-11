@@ -8,14 +8,14 @@ using namespace std;
 bool pass2(string intermediate_file){
 
     //initialising files
-    ifstream pass2_in(intermediate_file);
+    ifstream pass2_input(intermediate_file);
     ofstream pass2_list("./../data/listing_file.txt");
 
     pass2_list<<write_in_listing_file("L.No.", "LOCCTR", "BLK", "LABEL", "OPCODE", "OPERAND", "OBJECT_CODE")<<endl;
-    pass2_list<<"======================================================================="<<endl;
+    pass2_list<<"---------------------------------------------------------------------"<<endl;
 
-    ofstream pass2_obj("./../data/object_program.txt");
-    ofstream pass2_err("./../data/error.txt");
+    ofstream pass2_object("./../data/object_program.txt");
+    ofstream pass2_error("./../data/error.txt");
 
     bool ERROR_FLAG_PASS2 = false;
 
@@ -43,9 +43,9 @@ bool pass2(string intermediate_file){
     //-----------------------------HEADER RECORD-------------------------------------------
     //handling start and use for header record
     string header_record="H^";
-    while(getline(pass2_in,line)){
+    while(getline(pass2_input,line)){
         //neglecting comments and blank lines
-        if(!pass2_line_scraper(line, line_no, locctr, program_block_no, label, opcode, operand)){
+        if(!process_line_pass2(line, line_no, locctr, program_block_no, label, opcode, operand)){
             pass2_list<<line<<endl;
             continue;
         }
@@ -58,13 +58,13 @@ bool pass2(string intermediate_file){
             }
             header_record+="^";
 
-            string start_address = decimalToTwosComplement(stoi(operand, nullptr, 16),6);
+            string start_address = decimal_to_hex(stoi(operand, nullptr, 16),6);
             header_record += start_address;
             header_record+="^";
-            string header_program_length = decimalToTwosComplement(program_length,6);
+            string header_program_length = decimal_to_hex(program_length,6);
             header_record += header_program_length;
-            pass2_obj<<header_record<<endl;
-            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
+            pass2_object<<header_record<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimal_to_hex(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
 
             prev_block_no = program_block_no;
 
@@ -73,7 +73,7 @@ bool pass2(string intermediate_file){
         
         else if(opcode=="USE"){
             prev_block_no = program_block_no;
-            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimal_to_hex(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
             continue;
         }
     }
@@ -81,22 +81,22 @@ bool pass2(string intermediate_file){
     
     //---------------TEXT RECORD, MODIFICATION RECORD, END RECORD-------------------------
     //handling further lines
-    while(getline(pass2_in, line)) {
+    while(getline(pass2_input, line)) {
         current_object_code = "";
 
         //neglecting comments and blank lines
-        if(!pass2_line_scraper(line, line_no, locctr, program_block_no, label, opcode, operand)){
+        if(!process_line_pass2(line, line_no, locctr, program_block_no, label, opcode, operand)){
             pass2_list<<line<<endl;
             continue;
         }
 
         if(opcode == "BASE") {
-            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimal_to_hex(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
             if(SYMTAB.find(operand) != SYMTAB.end()) {
                 BASE_REGISTER_VALUE = SYMTAB[operand].value;
                 BASE_RELATIVE_ADDRESSING = 1;
             }
-            else if(check_operand_absolute(operand)) {
+            else if(is_operand_absolute(operand)) {
                 BASE_REGISTER_VALUE = stoi(operand, nullptr, 10);
                 BASE_RELATIVE_ADDRESSING = 1;
             }
@@ -105,36 +105,36 @@ bool pass2(string intermediate_file){
                 bool isValid = true;
                 bool isRelative = false;
                 int value = 0;
-                handle_expression(operand, value, isValid, isRelative);
+                expression_handler(operand, value, isValid, isRelative);
                 if(isValid){
                     BASE_REGISTER_VALUE = value;
                     BASE_RELATIVE_ADDRESSING = 1;
                 }
                 else{
                     ERROR_FLAG_PASS2 = 1;
-                    pass2_err<<"Invalid expression for BASE at "<<line_no<<endl;
+                    pass2_error<<"Invalid expression for BASE at "<<line_no<<endl;
                     continue;
                 }
             }
         }
 
         else if(opcode == "NOBASE") {
-            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimal_to_hex(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
             BASE_RELATIVE_ADDRESSING = 0;
         }
 
         else if(opcode == "LTORG") {
-            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimal_to_hex(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
             continue;
         }
 
         else if(opcode == "EQU") {
-            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimal_to_hex(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
             continue;
         }
 
         else if(opcode == "ORG") {
-            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimal_to_hex(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
             continue;
         }
 
@@ -145,7 +145,7 @@ bool pass2(string intermediate_file){
                     for(int i=3; i<operand.length()-1; i++) {
                         char ch = operand[i];
                         int x = ch;
-                        current_object_code += decimalToTwosComplement(x, 2);
+                        current_object_code += decimal_to_hex(x, 2);
                     }
                 }
                 else {
@@ -159,7 +159,7 @@ bool pass2(string intermediate_file){
                     for(int i=2; i<operand.length()-1; i++) {
                         char ch = operand[i];
                         int x = ch;
-                        current_object_code += decimalToTwosComplement(x, 2);
+                        current_object_code += decimal_to_hex(x, 2);
                     }
                 }
                 else {
@@ -192,18 +192,18 @@ bool pass2(string intermediate_file){
 
             //handle listing file
             if(operand[0]=='=') {                                       //literal pool BYTE
-                pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), "*", operand, "", current_object_code)<<endl;
+                pass2_list<<write_in_listing_file(line_no, decimal_to_hex(locctr, 5), to_string(program_block_no), "*", operand, "", current_object_code)<<endl;
             }
             else {                                                                          // common BYTE
-                pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, current_object_code)<<endl;
+                pass2_list<<write_in_listing_file(line_no, decimal_to_hex(locctr, 5), to_string(program_block_no), label, opcode, operand, current_object_code)<<endl;
             }
 
         }
         
         else if(opcode == "WORD") {
-            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimal_to_hex(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
 
-            current_object_code = decimalToTwosComplement(stoi(operand, nullptr, 10), 6);
+            current_object_code = decimal_to_hex(stoi(operand, nullptr, 10), 6);
 
             if(prev_RESW_RESB) {
                 prev_RESW_RESB = 0;
@@ -228,7 +228,7 @@ bool pass2(string intermediate_file){
         }
        
         else if(opcode == "RESW" || opcode == "RESB") {
-            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimal_to_hex(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
 
             if(current_text_record.object_code_length != 0) {
                 current_text_record.length = current_text_record.object_code_length/2;
@@ -240,7 +240,7 @@ bool pass2(string intermediate_file){
         }
         
         else if(opcode == "USE") {
-            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimal_to_hex(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
             continue;
         }
 
@@ -274,14 +274,14 @@ bool pass2(string intermediate_file){
                     bool isValid = true;
                     bool isRelative = false;
                     int value = 0;
-                    handle_expression(operand, value, isValid, isRelative);
+                    expression_handler(operand, value, isValid, isRelative);
                     if(isValid) {
                         // is an expression
                         if(isRelative) {
                             need_modification_record = 1;
                         }
                     }
-                    else if(check_operand_absolute(operand)) {
+                    else if(is_operand_absolute(operand)) {
                         value = stoi(operand, nullptr, 10);
                     }
                     else if(SYMTAB.find(operand) != SYMTAB.end()) {
@@ -297,16 +297,16 @@ bool pass2(string intermediate_file){
                     }
                     else {
                         ERROR_FLAG_PASS2 = 1;
-                        pass2_err<<"Invalid operand for format-4 instruction at "<<line_no<<endl;
+                        pass2_error<<"Invalid operand for format-4 instruction at "<<line_no<<endl;
                         continue;
                     }
 
                     int tmp = stoi(opcode_value, nullptr, 16);
-                    current_object_code = decimalToTwosComplement(tmp + ni, 2) + decimalToTwosComplement(xbpe, 1) + decimalToTwosComplement(value, 5);
+                    current_object_code = decimal_to_hex(tmp + ni, 2) + decimal_to_hex(xbpe, 1) + decimal_to_hex(value, 5);
                 }
                 else {
                     ERROR_FLAG_PASS2 = 1;
-                    pass2_err<<"Invalid operand for format-4 instruction at "<<line_no<<endl;
+                    pass2_error<<"Invalid operand for format-4 instruction at "<<line_no<<endl;
                     continue;
                 }
             }
@@ -316,7 +316,7 @@ bool pass2(string intermediate_file){
                 }
                 else {
                     ERROR_FLAG_PASS2 = 1;
-                    pass2_err<<"Invalid operand for format-4 instruction at "<<line_no<<endl;
+                    pass2_error<<"Invalid operand for format-4 instruction at "<<line_no<<endl;
                     continue;
                 }
             }
@@ -347,13 +347,13 @@ bool pass2(string intermediate_file){
             if(need_modification_record) {
                 string modification_record = "M^";
                 int address = BLOCK_DATA[program_block_no].start_address + locctr + 1;
-                modification_record += decimalToTwosComplement(address, 6);
+                modification_record += decimal_to_hex(address, 6);
                 modification_record += "^05";
                 MODIFICATION_RECORDS.push_back(modification_record);
             }
 
             //handle listing file
-            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, current_object_code)<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimal_to_hex(locctr, 5), to_string(program_block_no), label, opcode, operand, current_object_code)<<endl;
 
         }
 
@@ -371,10 +371,10 @@ bool pass2(string intermediate_file){
             //opcode has format 2
             else if(format == 2) {
                 bool error_flag = 0;
-                string str = handleFormat2(opcode, operand, error_flag);
+                string str = process_format2(opcode, operand, error_flag);
                 if(error_flag) {
                     ERROR_FLAG_PASS2 = 1;
-                    pass2_err<<"Invalid operand for format-2 instruction at "<<line_no<<endl;
+                    pass2_error<<"Invalid operand for format-2 instruction at "<<line_no<<endl;
                     continue;
                 }
     
@@ -405,11 +405,11 @@ bool pass2(string intermediate_file){
                         bool isValid = true;
                         bool isRelative = false;
                         int value = 0;
-                        handle_expression(operand, value, isValid, isRelative);
+                        expression_handler(operand, value, isValid, isRelative);
                         if(isValid) {
                             // is an expression
                         }
-                        else if(check_operand_absolute(operand)) {
+                        else if(is_operand_absolute(operand)) {
                             value = stoi(operand, nullptr, 10);
                         }
                         else if(SYMTAB.find(operand) != SYMTAB.end()) {
@@ -421,7 +421,7 @@ bool pass2(string intermediate_file){
                         }
                         else {
                             ERROR_FLAG_PASS2 = 1;
-                            pass2_err<<"Invalid operand for format-3 instruction at "<<line_no<<endl;
+                            pass2_error<<"Invalid operand for format-3 instruction at "<<line_no<<endl;
                             continue;
                         }
                         //handle direct or relative addressing
@@ -441,24 +441,24 @@ bool pass2(string intermediate_file){
                                     }
                                     else {
                                         ERROR_FLAG_PASS2 = 1;
-                                        pass2_err<<"Displacement is out of bounds for both PC-relative and BASE-relative addressing in format-3 instruction at "<<line_no<<endl;
+                                        pass2_error<<"Displacement is out of range for both PC-relative and BASE-relative addressing in format-3 instruction at line no. "<<line_no<<endl;
                                         continue;
                                     }
                                 }
                                 else {
                                     ERROR_FLAG_PASS2 = 1;
-                                    pass2_err<<"Displacement is out of bounds for PC-relative addressing and BASE-relative addressing is not enabled in format-3 instruction at "<<line_no<<endl;
+                                    pass2_error<<"Displacement is out of range for PC-relative addressing and BASE-relative addressing is not enabled in format-3 instruction at line no. "<<line_no<<endl;
                                     continue;
                                 }
                             }
                         }
 
                         int tmp = stoi(opcode_value, nullptr, 16);
-                        current_object_code = decimalToTwosComplement(tmp + ni, 2) + decimalToTwosComplement(xbpe, 1) + decimalToTwosComplement(value, 3);
+                        current_object_code = decimal_to_hex(tmp + ni, 2) + decimal_to_hex(xbpe, 1) + decimal_to_hex(value, 3);
                     }
                     else {
                         ERROR_FLAG_PASS2 = 1;
-                        pass2_err<<"Operand given for RSUB in format-3 instruction at "<<line_no<<endl;
+                        pass2_error<<"Trying to provide operand to RSUB in format-3 instruction at line no. "<<line_no<<endl;
                         continue;
                     }
                 }
@@ -468,7 +468,7 @@ bool pass2(string intermediate_file){
                     }
                     else {
                         ERROR_FLAG_PASS2 = 1;
-                        pass2_err<<opcode<<" requires operand for format-3 instruction at "<<line_no<<endl;
+                        pass2_error<<opcode<<" requires operand for format-3 instruction at line no. "<<line_no<<endl;
                         continue;
                     }
                 }
@@ -499,7 +499,7 @@ bool pass2(string intermediate_file){
             }
 
             //handle listing file
-            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, current_object_code)<<endl;    
+            pass2_list<<write_in_listing_file(line_no, decimal_to_hex(locctr, 5), to_string(program_block_no), label, opcode, operand, current_object_code)<<endl;    
         }
         
         else if(opcode == "END") {
@@ -507,16 +507,16 @@ bool pass2(string intermediate_file){
 
             if(operand != "") {
                 if(SYMTAB.find(operand) != SYMTAB.end()) {
-                    end_record += decimalToTwosComplement(SYMTAB[operand].value, 6);
+                    end_record += decimal_to_hex(SYMTAB[operand].value, 6);
                 }
                 else {
                     ERROR_FLAG_PASS2 = 1;
-                    pass2_err<<"Undefined label present at "<<line_no<<endl;
+                    pass2_error<<"Undefined label present at line no. "<<line_no<<endl;
                     continue;
                 }
             }
             else {
-                end_record += decimalToTwosComplement(BLOCK_DATA[0].start_address, 6);
+                end_record += decimal_to_hex(BLOCK_DATA[0].start_address, 6);
             }
 
             //handle listing file
@@ -527,7 +527,7 @@ bool pass2(string intermediate_file){
         
         else {
             ERROR_FLAG_PASS2 = 1;
-            pass2_err<<"Invalid opcode present at "<<line_no<<endl;
+            pass2_error<<"Invalid opcode present at line no. "<<line_no<<endl;
             continue;
         }
     }                   //END OF INTERMEDIATE FILE
@@ -541,20 +541,20 @@ bool pass2(string intermediate_file){
     //write text records
     for(auto i:TEXT_RECORDS) {
         string text_record = "T^";
-        text_record += decimalToTwosComplement(i.start_address, 6);
+        text_record += decimal_to_hex(i.start_address, 6);
         text_record += "^";
-        text_record += decimalToTwosComplement(i.length, 2);
+        text_record += decimal_to_hex(i.length, 2);
         text_record += i.object_code;
-        pass2_obj<<text_record<<endl;
+        pass2_object<<text_record<<endl;
     }
 
     // write modification records
     for(auto i:MODIFICATION_RECORDS) {
-        pass2_obj<<i<<endl;
+        pass2_object<<i<<endl;
     }
 
     //write end record
-    pass2_obj<<end_record<<endl;
+    pass2_object<<end_record<<endl;
 
     return ERROR_FLAG_PASS2;
 }

@@ -11,14 +11,14 @@ int main() {
 
     if(_pass1 == 0){
 
-        cout<<"------------ PASS 1 completed successfully -----------"<<'\n';
+        cout<<"------------ PASS 1 completed -----------"<<'\n';
 
-        write_tables();
+        write_in_tables();
 
         string intermediate_file = "./../data/intermediate.txt";
         bool _pass2 = pass2(intermediate_file);
         if(_pass2 == 0) {
-            cout<<"----------- PASS 2 completed successfully ----------"<<'\n';
+            cout<<"----------- PASS 2 completed ----------"<<'\n';
         }
         else {
             cout<<"------------ Error in PASS 2 ----------------"<<endl;

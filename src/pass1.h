@@ -7,9 +7,9 @@ using namespace std;
 
 bool pass1(string input_file){
     
-    ifstream pass1_in(input_file);
-    ofstream pass1_out("./../data/intermediate.txt");
-    ofstream pass1_err("./../data/error.txt");
+    ifstream pass1_input(input_file);
+    ofstream pass1_output("./../data/intermediate.txt");
+    ofstream pass1_error("./../data/error.txt");
 
     bool ERROR_FLAG_PASS1 = false;
 
@@ -27,18 +27,18 @@ bool pass1(string input_file){
 
     //handling start and use
 
-    while(getline(pass1_in, line)){
+    while(getline(pass1_input, line)){
         line_no++;
         //comment or blank line
-        if(!pass1_line_scraper(line, label, opcode, operand)){
-            pass1_out<<line<<endl;
+        if(!process_line_pass1(line, label, opcode, operand)){
+            pass1_output<<line<<endl;
             continue;
         }
 
         //check label has length <=6
         if(label.size()>6) {
-            pass1_err<<"Label size greater than 6 at line "<<line_no<<endl;
-            pass1_out<<".--------ERROR--------------"<<endl;
+            pass1_error<<"Label size is greater than 6 at line no. "<<line_no<<endl;
+            pass1_output<<".-------- ERROR --------------"<<endl;
             ERROR_FLAG_PASS1=true;
             continue;
         }
@@ -51,7 +51,7 @@ bool pass1(string input_file){
                 BLOCKTABLE["DEFAULT"] = {"DEFAULT",  total_blocks, 0, 0, 0};
                 total_blocks++;
                 current_block_no=BLOCKTABLE["DEFAULT"].block_no;
-                pass1_out<<line_no<< " "<<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                pass1_output<<line_no<< " "<<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             }
             
             break;
@@ -66,13 +66,13 @@ bool pass1(string input_file){
             total_blocks++;
             current_block_no=BLOCKTABLE[operand].block_no;
             LOCCTR = BLOCKTABLE[operand].block_locctr;
-            pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+            pass1_output<<line_no<< " " <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             continue;
         }
         
         else{
-            pass1_err<<"START not found at line "<<line_no<<endl;
-            pass1_out<<".--------ERROR--------------"<<endl;
+            pass1_error<<"START assembler directive not found at line no. "<<line_no<<endl;
+            pass1_output<<".--------ERROR--------------"<<endl;
             ERROR_FLAG_PASS1=true;
             break;
         }
@@ -80,33 +80,33 @@ bool pass1(string input_file){
     }
 
     //handling further lines
-    while(getline(pass1_in, line)){
+    while(getline(pass1_input, line)){
         
         line_no++;
         //comment or blank line
-        if(!pass1_line_scraper(line, label, opcode, operand)){
-            pass1_out<<line<<endl;
+        if(!process_line_pass1(line, label, opcode, operand)){
+            pass1_output<<line<<endl;
             continue;
         }
         //checklabel length <=6
         if(label.size()>6) {
-            pass1_err<<"Label size greater than 6 at line "<<line_no<<endl;
-            pass1_out<<".--------ERROR--------------"<<endl;
+            pass1_error<<"Label size is greater than 6 at line no. "<<line_no<<endl;
+            pass1_output<<".--------ERROR--------------"<<endl;
             ERROR_FLAG_PASS1=true;
             continue;
         }
 
         else if(opcode=="START"){
-            pass1_err<<"START double time "<<line_no<<endl;
-            pass1_out<<".--------ERROR--------------"<<endl;
+            pass1_error<<"START appeared for the second time at line no. "<<line_no<<endl;
+            pass1_output<<".--------ERROR--------------"<<endl;
             ERROR_FLAG_PASS1=true;
             continue;
         }
         
         else if(opcode=="USE"){
             if(label!=""){
-                pass1_err<<"Assigning label to USE at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"Trying to assign label to USE assembler directive at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
@@ -122,12 +122,12 @@ bool pass1(string input_file){
                 total_blocks++;
                 current_block_no=BLOCKTABLE[operand].block_no;
                 LOCCTR = BLOCKTABLE[operand].block_locctr;
-                pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                pass1_output<<line_no<< " " <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             }
             else{
                 current_block_no=BLOCKTABLE[operand].block_no;
                 LOCCTR = BLOCKTABLE[operand].block_locctr;
-                pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                pass1_output<<line_no<< " " <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             }
 
             current_block_name=operand;
@@ -135,34 +135,34 @@ bool pass1(string input_file){
         
         else if(opcode=="EQU"){
             if(label==""){
-                pass1_err<<"No label assigned label to "<< opcode <<" at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"No label assigned to "<< opcode <<" at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
            
             if(operand=="" || operand[0]=='='){
-                pass1_err<<"Assigning wrong operand to "<< opcode <<" at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"Trying to assign wrong operand to "<< opcode <<" at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
 
             //if operand is decimal value
-            else if(check_operand_absolute(operand)){
+            else if(is_operand_absolute(operand)){
                 int value = stoi(operand, nullptr, 10);
                 SYMTAB[label] = {label, current_block_no, value, 2};                //absolute label
-                pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                pass1_output<<line_no<< " " <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             }
             // if operand is a symbol
             else if(SYMTAB.find(operand) != SYMTAB.end()){
                 SYMTAB[label] = {label, current_block_no, SYMTAB[operand].value, 1};                //relative label
-                pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                pass1_output<<line_no<< " " <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             }
             else if(operand == "*") {
                 //direct value assignment to label
                 SYMTAB[label] = {label, current_block_no, LOCCTR, 1};//relative label
-                pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                pass1_output<<line_no<< " " <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             }
             
             else{
@@ -170,7 +170,7 @@ bool pass1(string input_file){
                 bool isValid = true;
                 bool isRelative = false;
                 int value = 0;
-                handle_expression(operand, value, isValid, isRelative);
+                expression_handler(operand, value, isValid, isRelative);
                 if(isValid){
                     if(isRelative){
                         SYMTAB[label] = {label, current_block_no, value, 1};                //relative label
@@ -178,11 +178,11 @@ bool pass1(string input_file){
                     else{
                         SYMTAB[label] = {label, current_block_no, value, 2};                    //absolute label
                     }
-                    pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                    pass1_output<<line_no<< " " <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
                 }
                 else{
-                    pass1_err<<"Invalid expression for EQU at "<<line_no<<endl;
-                    pass1_out<<".--------ERROR--------------"<<endl;
+                    pass1_error<<"Expression for EQU is invalid at line no. "<<line_no<<endl;
+                    pass1_output<<".--------ERROR--------------"<<endl;
                     ERROR_FLAG_PASS1=true;
                     continue;
                 }    
@@ -191,35 +191,35 @@ bool pass1(string input_file){
         
         else if(opcode=="ORG"){
             if(label!=""){
-                pass1_err<<"Assigning label to "<< opcode <<" at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"Trying to assign label to "<< opcode <<" at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
            
             if(operand=="" || operand[0]=='='){
-                pass1_err<<"Assigning wrong operand to "<< opcode <<" at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"Trying to assign wrong operand to "<< opcode <<" at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
 
             //if operand is decimal value
-            else if(check_operand_absolute(operand)){
+            else if(is_operand_absolute(operand)){
                 LOCCTR = stoi(operand, nullptr, 10);
-                pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                pass1_output<<line_no<< " " <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             }
             // if operand is a symbol
             else if(SYMTAB.find(operand) != SYMTAB.end()){
                 LOCCTR=SYMTAB[operand].value;
-                pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                pass1_output<<line_no<< " " <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             }
             else{
                 //handle expression
                 bool isValid = true;
                 bool isRelative = false;
                 int value = 0;
-                handle_expression(operand, value, isValid, isRelative);
+                expression_handler(operand, value, isValid, isRelative);
                 if(isValid){
                     if(isRelative){
                         LOCCTR = value;
@@ -227,11 +227,11 @@ bool pass1(string input_file){
                     else{
                         LOCCTR = value;
                     }
-                    pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                    pass1_output<<line_no<< " " <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
                 }
                 else{
-                    pass1_err<<"Invalid expression for ORG at "<<line_no<<endl;
-                    pass1_out<<".--------ERROR--------------"<<endl;
+                    pass1_error<<"Expression for ORG is invalid at line no. "<<line_no<<endl;
+                    pass1_output<<".--------ERROR--------------"<<endl;
                     ERROR_FLAG_PASS1=true;
                     continue;
                 }
@@ -240,8 +240,8 @@ bool pass1(string input_file){
 
         else if(opcode=="BASE"){
             if(label!=""){
-                pass1_err<<"Assigning label to BASE at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"Trying to assign label to BASE at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
@@ -251,7 +251,7 @@ bool pass1(string input_file){
                 char ch='0'+star_count;
                 operand+=ch;
                 LITTAB.insert({operand, LOCCTR});
-                pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                pass1_output<<line_no<< " " <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             }
         }
 
@@ -259,20 +259,20 @@ bool pass1(string input_file){
             if(!(label!="" && operand!="")){
                 //error
             }
-            pass1_out<<line_no<< " "  
-            <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+            pass1_output<<line_no<< " "  
+            <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
         }
 
         else if(opcode=="LTORG"){
             if(label!="" || operand!=""){
                 //error
-                if(label!="") pass1_err<<"Assigning label to LTORG at "<<line_no<<endl;
-                else pass1_err<<"Assigning operand to LTORG at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                if(label!="") pass1_error<<"Trying to assign label to LTORG at line no. "<<line_no<<endl;
+                else pass1_error<<"Trying to assign label to LTORG at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
-            pass1_out<< line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+            pass1_output<< line_no<< " " <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
 
             for(auto i:LITTAB){
                 if(i.first[0]=='*'){//this is for BASE *
@@ -280,7 +280,7 @@ bool pass1(string input_file){
                 }
                 else if(i.first[0]=='='){
                     SYMTAB[i.first] = {i.first, current_block_no, LOCCTR, 1};                           //relative label
-                    pass1_out<<line_no<<" "  <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" BYTE "<<i.first<<endl;
+                    pass1_output<<line_no<<" "  <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" BYTE "<<i.first<<endl;
                     if(i.first[1]=='C'){
                         LOCCTR+=i.first.length()-4;
                     }
@@ -296,15 +296,15 @@ bool pass1(string input_file){
         else if(opcode=="WORD"){
             if(operand==""){
                 //error
-                pass1_err<<"No operand for WORD at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"No operand for WORD at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
             if(label!=""){
                 if(SYMTAB.find(label)!=SYMTAB.end()){
-                    pass1_err<<"Duplicate symbol present at "<<line_no<<endl;
-                    pass1_out<<".--------ERROR--------------"<<endl;
+                    pass1_error<<"Duplicate symbol present at line no. "<<line_no<<endl;
+                    pass1_output<<".--------ERROR--------------"<<endl;
                     ERROR_FLAG_PASS1=true;
                     continue;
                 }
@@ -313,30 +313,30 @@ bool pass1(string input_file){
                 }
             }
 
-            if(!check_operand_absolute(operand)) {
+            if(!is_operand_absolute(operand)) {
                 //error
-                pass1_err<<"Invalid value for WORD present at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"Value for WORD is invalid at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
 
-            pass1_out<<line_no<< " "<<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+            pass1_output<<line_no<< " "<<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             LOCCTR+=3;
         }
 
         else if(opcode=="BYTE"){
-            if(operand==""){
-                pass1_err<<"No operand for BYTE at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+            if(operand=="") {
+                pass1_error<<"No operand for BYTE at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
             if(label!=""){
                 if(SYMTAB.find(label)!=SYMTAB.end()){
                     //error
-                    pass1_err<<"Duplicate symbol present at "<<line_no<<endl;
-                    pass1_out<<".--------ERROR--------------"<<endl;
+                    pass1_error<<"Duplicate symbol present at line no. "<<line_no<<endl;
+                    pass1_output<<".--------ERROR--------------"<<endl;
                     ERROR_FLAG_PASS1=true;
                     continue;
                 }
@@ -348,31 +348,31 @@ bool pass1(string input_file){
             if(operand[0]=='X'){
                 if(!(operand[1]=='\'' && operand[operand.length()-1]=='\'') || (operand.length()-3)%2!=0){
                    //error
-                    pass1_err<<"Invalid value for BYTE present at "<<line_no<<endl;
-                    pass1_out<<".--------ERROR--------------"<<endl;
+                    pass1_error<<"Value for BYTE is invalid at line no. "<<line_no<<endl;
+                    pass1_output<<".--------ERROR--------------"<<endl;
                     ERROR_FLAG_PASS1=true;
                     continue;
                 }
-                pass1_out<<line_no<< " "  
-                <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                pass1_output<<line_no<< " "  
+                <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
                 LOCCTR+=(operand.length()-3)/2;
             }
             else if(operand[0]=='C'){
                 if(!(operand[1]=='\'' && operand[operand.length()-1]=='\'')){
                     // error
-                    pass1_err<<"Invalid value for BYTE present at "<<line_no<<endl;
-                    pass1_out<<".--------ERROR--------------"<<endl;
+                    pass1_error<<"Value for BYTE is invalid at line no. "<<line_no<<endl;
+                    pass1_output<<".--------ERROR--------------"<<endl;
                     ERROR_FLAG_PASS1=true;
                     continue;
                 }
-                pass1_out<<line_no<< " "  
-                <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                pass1_output<<line_no<< " "  
+                <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
                 LOCCTR+=operand.length()-3;
             }
             else{
                 //error
-                pass1_err<<"Invalid value for BYTE present at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"Value for BYTE is invalid at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
@@ -381,16 +381,16 @@ bool pass1(string input_file){
         else if(opcode=="RESW"){
             if(operand==""){
                 //error
-                pass1_err<<"NO value for BYTE present at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"No value for BYTE present at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
             if(label!=""){
                 if(SYMTAB.find(label)!=SYMTAB.end()){
                     //error
-                    pass1_err<<"Duplicate symbol present at "<<line_no<<endl;
-                    pass1_out<<".--------ERROR--------------"<<endl;
+                    pass1_error<<"Duplicate symbol present at line no. "<<line_no<<endl;
+                    pass1_output<<".--------ERROR--------------"<<endl;
                     ERROR_FLAG_PASS1=true;
                     continue;
                 }
@@ -398,15 +398,15 @@ bool pass1(string input_file){
                     SYMTAB[label] = {label, current_block_no, LOCCTR, 1};                       //relative label
                 }
             }
-            if(check_operand_absolute(operand)) {
-                pass1_out<<line_no<< " "  
-                <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+            if(is_operand_absolute(operand)) {
+                pass1_output<<line_no<< " "  
+                <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
                 LOCCTR+=3*stoi(operand, nullptr, 10);
             }
             else{
                 //error
-                pass1_err<<"Invalid value for RESW present at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"Value for RESW is invalid at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
@@ -415,16 +415,16 @@ bool pass1(string input_file){
         else if(opcode=="RESB"){
             if(operand==""){
                 //error
-                pass1_err<<"Duplicate symbol present at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"Duplicate symbol present at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
             if(label!=""){
                 if(SYMTAB.find(label)!=SYMTAB.end()){
                     //error
-                    pass1_err<<"Duplicate symbol present at "<<line_no<<endl;
-                    pass1_out<<".--------ERROR--------------"<<endl;
+                    pass1_error<<"Duplicate symbol present at line no. "<<line_no<<endl;
+                    pass1_output<<".--------ERROR--------------"<<endl;
                     ERROR_FLAG_PASS1=true;
                     continue;
                 }
@@ -432,14 +432,14 @@ bool pass1(string input_file){
                     SYMTAB[label] = {label, current_block_no, LOCCTR, 1};                       //relative label
                 }
             }
-            if(check_operand_absolute(operand)) {
-                pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+            if(is_operand_absolute(operand)) {
+                pass1_output<<line_no<< " " <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
                 LOCCTR+=stoi(operand, nullptr, 10);
             }
             else{
                 //error
-                pass1_err<<"Invalid value for RESB present at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"Value for RESB is invalide at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
@@ -448,12 +448,12 @@ bool pass1(string input_file){
 
         else if(opcode=="END"){
             if(label!=""){
-                pass1_err<<"Assigning label to END at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"Trying to assign label to END at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
             }
             else {
-                pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                pass1_output<<line_no<< " " <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             }
             //clear LITTAB
             for(auto i:LITTAB){
@@ -462,7 +462,7 @@ bool pass1(string input_file){
                 }
                 else if(i.first[0]=='='){
                     SYMTAB[i.first] = {i.first, current_block_no, LOCCTR, 1};                           //relative label
-                    pass1_out<<line_no<<"  "  <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" BYTE "<<i.first<<endl;
+                    pass1_output<<line_no<<"  "  <<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" BYTE "<<i.first<<endl;
                     if(i.first[1]=='C'){
                         LOCCTR+=i.first.length()-4;
                     }
@@ -484,8 +484,8 @@ bool pass1(string input_file){
                 if(label != "") {
                     if(SYMTAB.find(label)!=SYMTAB.end()){
                         //error
-                        pass1_err<<"Duplicate symbol present at "<<line_no<<endl;
-                        pass1_out<<".--------ERROR--------------"<<endl;
+                        pass1_error<<"Duplicate symbol present at line no. "<<line_no<<endl;
+                        pass1_output<<".--------ERROR--------------"<<endl;
                         ERROR_FLAG_PASS1=true;
                         continue;
                     }
@@ -498,8 +498,8 @@ bool pass1(string input_file){
                 }
                 else if(operand=="*"){
                     //error
-                    pass1_err<<"Invalid operand present at "<<line_no<<endl;
-                    pass1_out<<".--------ERROR--------------"<<endl;
+                    pass1_error<<"Invalid operand present at line no. "<<line_no<<endl;
+                    pass1_output<<".--------ERROR--------------"<<endl;
                     ERROR_FLAG_PASS1=true;
                     LOCCTR+=4;
                     continue;
@@ -523,14 +523,14 @@ bool pass1(string input_file){
                     LITTAB.insert({operand, 0});
                 }
                 
-                pass1_out<<line_no<< " "<<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+                pass1_output<<line_no<< " "<<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
                 
                 LOCCTR+=4;
             }
             else{
                 //error
-                pass1_err<<"Given opcode is not a format 4 instruction at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"Given opcode is not a format 4 instruction at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
@@ -540,8 +540,8 @@ bool pass1(string input_file){
             if(label!=""){
                 if(SYMTAB.find(label)!=SYMTAB.end()){
                     //error
-                    pass1_err<<"Duplicate symbol present at "<<line_no<<endl;
-                    pass1_out<<".--------ERROR--------------"<<endl;
+                    pass1_error<<"Duplicate symbol present at line no. "<<line_no<<endl;
+                    pass1_output<<".--------ERROR--------------"<<endl;
                     ERROR_FLAG_PASS1=true;
                     continue;
                 }
@@ -555,8 +555,8 @@ bool pass1(string input_file){
             }
             else if(operand=="*"){
                 //error
-                pass1_err<<"Invalid operand present at "<<line_no<<endl;
-                pass1_out<<".--------ERROR--------------"<<endl;
+                pass1_error<<"Invalid operand present at line no. "<<line_no<<endl;
+                pass1_output<<".--------ERROR--------------"<<endl;
                 ERROR_FLAG_PASS1=true;
                 LOCCTR+=OPTAB[opcode].second;
                 continue;
@@ -577,23 +577,23 @@ bool pass1(string input_file){
                 // literal_count++;
                 LITTAB.insert({operand, 0});
             }
-            pass1_out<<line_no<< " "<<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+            pass1_output<<line_no<< " "<<decimal_to_hex(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             
             LOCCTR+=OPTAB[opcode].second;
         }
        
         else{
             //error
-            pass1_err<<"Invalid opcode present at "<<line_no<<endl;
-            pass1_out<<".--------ERROR--------------"<<endl;
+            pass1_error<<"Invalid opcode present at line no. "<<line_no<<endl;
+            pass1_output<<".--------ERROR--------------"<<endl;
             ERROR_FLAG_PASS1=true;
         }
 
     }               //END OF FILE
 
-    pass1_out.close();
-    pass1_err.close();
-    pass1_in.close();
+    pass1_output.close();
+    pass1_error.close();
+    pass1_input.close();
 
     //update BLOCKTABLE and program_length
     for(auto &i : BLOCKTABLE) {
