@@ -5,8 +5,9 @@
 using namespace std;
 
 int main() {
-
-    bool _pass1 = pass1();
+    
+    string input_file = "./../data/input.txt";
+    bool _pass1 = pass1(input_file);
 
     if(_pass1 == 0){
 
@@ -14,7 +15,8 @@ int main() {
 
         write_tables();
 
-        bool _pass2 = pass2();
+        string intermediate_file = "./../data/intermediate.txt";
+        bool _pass2 = pass2(intermediate_file);
         if(_pass2 == 0) {
             cout<<"----------- PASS 2 completed successfully ----------"<<'\n';
         }

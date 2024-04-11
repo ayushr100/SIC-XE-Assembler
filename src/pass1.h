@@ -5,8 +5,9 @@
 #include "./functions.h"
 using namespace std;
 
-bool pass1(){
-    ifstream pass1_in("./../data/input.txt");
+bool pass1(string input_file){
+    
+    ifstream pass1_in(input_file);
     ofstream pass1_out("./../data/intermediate.txt");
     ofstream pass1_err("./../data/error.txt");
 

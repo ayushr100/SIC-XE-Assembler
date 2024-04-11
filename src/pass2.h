@@ -5,9 +5,10 @@
 #include "./functions.h"
 using namespace std;
 
-bool pass2(){
+bool pass2(string intermediate_file){
+
     //initialising files
-    ifstream pass2_in("./../data/intermediate.txt");
+    ifstream pass2_in(intermediate_file);
     ofstream pass2_list("./../data/listing_file.txt");
 
     pass2_list<<write_in_listing_file("L.No.", "LOCCTR", "BLK", "LABEL", "OPCODE", "OPERAND", "OBJECT_CODE")<<endl;
@@ -502,28 +503,6 @@ bool pass2(){
         }
         
         else if(opcode == "END") {
-
-            if(prev_RESW_RESB) {
-                prev_RESW_RESB = 0;
-                current_text_record.start_address = BLOCK_DATA[program_block_no].start_address + locctr;
-            }
-
-            if((program_block_no != prev_block_no) || (current_text_record.object_code_length + current_object_code.length() > 60)) {
-                //store current text record
-                current_text_record.length = current_text_record.object_code_length/2;
-                TEXT_RECORDS.push_back(current_text_record);
-                //create new text record
-                current_text_record = text_record();
-                current_text_record.start_address = BLOCK_DATA[program_block_no].start_address + locctr;
-                current_text_record.object_code += "^" + current_object_code;
-                current_text_record.object_code_length += current_object_code.length();
-                prev_block_no = program_block_no;
-            }
-            else {
-                current_text_record.object_code += "^" + current_object_code;
-                current_text_record.object_code_length += current_object_code.length();
-            }
-
             //write end record
 
             if(operand != "") {
@@ -554,7 +533,7 @@ bool pass2(){
     }                   //END OF INTERMEDIATE FILE
 
     // push last text record if exist
-    if(current_object_code.size() > 0) {
+    if(current_text_record.object_code_length > 0) {
         current_text_record.length = current_text_record.object_code_length/2;
         TEXT_RECORDS.push_back(current_text_record);
     }
