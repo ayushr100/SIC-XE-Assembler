@@ -99,7 +99,7 @@ struct symbol{
     string label;
     int block_no;
     int value;
-    int isValid; //0 for normal, 1 for relative, 2 for absolute
+    int isValid;                // 0 for normal, 1 for relative, 2 for absolute
 };
 map<string, symbol> SYMTAB;
 
@@ -150,7 +150,6 @@ bool check_operand_absolute(string operand){
         else return false;            
     }
     return true;
-
 }
 
 bool pass1_line_scraper(string line, string &label, string &opcode, string &operand) {
@@ -191,8 +190,6 @@ bool pass1_line_scraper(string line, string &label, string &opcode, string &oper
         operand = tokens[2];
     }
     return true;
-    
-    
 }
 
 
@@ -247,8 +244,6 @@ bool pass2_line_scraper(string line, string &line_no, int &locctr, int &program_
         operand = tokens[5];
     }
     return true;
-    
-    
 }
 
 // Function to perform arithmetic operations.
@@ -289,7 +284,7 @@ int evaluateExpression(string expression) {
                 operand = operand * 10 + (expression[i] - '0');
                 ++i;
             }
-            --i; // To compensate for the extra increment in the loop
+            --i;                                                            // To compensate for the extra increment in the loop
             values.push(sign * operand);
         }
         // If current character is an opening parenthesis, push it to the operators stack.
@@ -416,7 +411,7 @@ void handle_expression(string operand,int &value, bool &isValid, bool & isRelati
         }
     }
     if((count_rel_positive<count_rel_negative) || (count_rel_positive-count_rel_negative>1)){
-        isValid=0;//error
+        isValid=0;                          //error
         return;
     }
 
@@ -446,7 +441,6 @@ void handle_expression(string operand,int &value, bool &isValid, bool & isRelati
     }
     //Evaluating the expression
     value=evaluateExpression(generated_expression);
-
 }
 
 

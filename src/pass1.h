@@ -133,8 +133,6 @@ bool pass1(){
         }
         
         else if(opcode=="EQU"){
-            //cout<<label<<" "<<opcode<<" "<<operand<<endl;
-        
             if(label==""){
                 pass1_err<<"No label assigned label to "<< opcode <<" at "<<line_no<<endl;
                 pass1_out<<".--------ERROR--------------"<<endl;
@@ -152,12 +150,12 @@ bool pass1(){
             //if operand is decimal value
             else if(check_operand_absolute(operand)){
                 int value = stoi(operand, nullptr, 10);
-                SYMTAB[label] = {label, current_block_no, value, 2};//absolute label
+                SYMTAB[label] = {label, current_block_no, value, 2};                //absolute label
                 pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             }
             // if operand is a symbol
             else if(SYMTAB.find(operand) != SYMTAB.end()){
-                SYMTAB[label] = {label, current_block_no, SYMTAB[operand].value, 1};//relative label
+                SYMTAB[label] = {label, current_block_no, SYMTAB[operand].value, 1};                //relative label
                 pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
             }
             else if(operand == "*") {
@@ -174,10 +172,10 @@ bool pass1(){
                 handle_expression(operand, value, isValid, isRelative);
                 if(isValid){
                     if(isRelative){
-                        SYMTAB[label] = {label, current_block_no, value, 1};//relative label
+                        SYMTAB[label] = {label, current_block_no, value, 1};                //relative label
                     }
                     else{
-                        SYMTAB[label] = {label, current_block_no, value, 2};//absolute label
+                        SYMTAB[label] = {label, current_block_no, value, 2};                    //absolute label
                     }
                     pass1_out<<line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
                 }
@@ -186,11 +184,8 @@ bool pass1(){
                     pass1_out<<".--------ERROR--------------"<<endl;
                     ERROR_FLAG_PASS1=true;
                     continue;
-                }
-                 
+                }    
             }
-        
-          
         }
         
         else if(opcode=="ORG"){
@@ -239,9 +234,7 @@ bool pass1(){
                     ERROR_FLAG_PASS1=true;
                     continue;
                 }
-
             }
-        
         }
 
         else if(opcode=="BASE"){
@@ -282,11 +275,10 @@ bool pass1(){
 
             for(auto i:LITTAB){
                 if(i.first[0]=='*'){//this is for BASE *
-                    SYMTAB[i.first] = {i.first, current_block_no, i.second, 1};//relative label
-                    // pass1_out<<"    "  <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" BYTE "<<i.first<<" "<<i.second<<" "<<endl;
+                    SYMTAB[i.first] = {i.first, current_block_no, i.second, 1};                 //relative label
                 }
                 else if(i.first[0]=='='){
-                    SYMTAB[i.first] = {i.first, current_block_no, LOCCTR, 1};//relative label
+                    SYMTAB[i.first] = {i.first, current_block_no, LOCCTR, 1};                           //relative label
                     pass1_out<<line_no<<" "  <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" BYTE "<<i.first<<" "<<i.second<<" "<<endl;
                     if(i.first[1]=='C'){
                         LOCCTR+=i.first.length()-4;
@@ -316,7 +308,7 @@ bool pass1(){
                     continue;
                 }
                 else{
-                    SYMTAB[label] = {label, current_block_no, LOCCTR, 1};       //relative label
+                    SYMTAB[label] = {label, current_block_no, LOCCTR, 1};                    //relative label
                 }
             }
 
@@ -348,7 +340,7 @@ bool pass1(){
                     continue;
                 }
                 else{
-                    SYMTAB[label] = {label, current_block_no, LOCCTR, 1};//relative label
+                    SYMTAB[label] = {label, current_block_no, LOCCTR, 1};                       //relative label
                 }
             }
 
@@ -402,7 +394,7 @@ bool pass1(){
                     continue;
                 }
                 else{
-                    SYMTAB[label] = {label, current_block_no, LOCCTR, 1};//relative label
+                    SYMTAB[label] = {label, current_block_no, LOCCTR, 1};                       //relative label
                 }
             }
             if(check_operand_absolute(operand)) {
@@ -436,7 +428,7 @@ bool pass1(){
                     continue;
                 }
                 else{
-                    SYMTAB[label] = {label, current_block_no, LOCCTR, 1};//relative label
+                    SYMTAB[label] = {label, current_block_no, LOCCTR, 1};                       //relative label
                 }
             }
             if(check_operand_absolute(operand)) {
@@ -464,13 +456,11 @@ bool pass1(){
             }
             //clear LITTAB
             for(auto i:LITTAB){
-                if(i.first[0]=='*'){//this is for BASE *
-                    SYMTAB[i.first] = {i.first, current_block_no, i.second, 1};//relative label
-                    // pass1_out<<"    "  <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" BYTE "<<i.first<<endl;
-                    
+                if(i.first[0]=='*'){                            //this is for BASE *
+                    SYMTAB[i.first] = {i.first, current_block_no, i.second, 1};                             //relative label
                 }
                 else if(i.first[0]=='='){
-                    SYMTAB[i.first] = {i.first, current_block_no, LOCCTR, 1};//relative label
+                    SYMTAB[i.first] = {i.first, current_block_no, LOCCTR, 1};                           //relative label
                     pass1_out<<line_no<<"  "  <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" BYTE "<<i.first<<endl;
                     if(i.first[1]=='C'){
                         LOCCTR+=i.first.length()-4;
@@ -499,7 +489,7 @@ bool pass1(){
                         continue;
                     }
                     else{
-                        SYMTAB[label] = {label, current_block_no, LOCCTR, 1};//relative label
+                        SYMTAB[label] = {label, current_block_no, LOCCTR, 1};                           //relative label
                     }
                 }
                 //handle operand
@@ -555,10 +545,8 @@ bool pass1(){
                     continue;
                 }
                 else{
-                    SYMTAB[label] = {label, current_block_no, LOCCTR, 1};//relative label
+                    SYMTAB[label] = {label, current_block_no, LOCCTR, 1};                           //relative label
                 }
-
-                            
             }
 
             //handle operand
@@ -600,7 +588,7 @@ bool pass1(){
             ERROR_FLAG_PASS1=true;
         }
 
-    }//END OF FILE
+    }               //END OF FILE
 
     pass1_out.close();
     pass1_err.close();

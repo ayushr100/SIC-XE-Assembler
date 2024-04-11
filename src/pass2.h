@@ -31,7 +31,7 @@ bool pass2(){
     string current_object_code;
     int prev_block_no=0;
 
-    //flsg to see if text record is crested inside RESW or RESB 
+    //flag to see if text record is crested inside RESW or RESB 
     //so when next instruction comes it should give starting address to text record
     bool prev_RESW_RESB = 0;
 
@@ -43,7 +43,6 @@ bool pass2(){
     //handling start and use for header record
     string header_record="H^";
     while(getline(pass2_in,line)){
-        //cout<<line<<endl;
         //neglecting comments and blank lines
         if(!pass2_line_scraper(line, line_no, locctr, program_block_no, label, opcode, operand)){
             pass2_list<<line<<endl;
@@ -191,10 +190,10 @@ bool pass2(){
             }
 
             //handle listing file
-            if(operand[0]=='=') { //literal pool BYTE
+            if(operand[0]=='=') {                                       //literal pool BYTE
                 pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), "*", operand, "", current_object_code)<<endl;
             }
-            else { // common BYTE
+            else {                                                                          // common BYTE
                 pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, current_object_code)<<endl;
             }
 
@@ -552,7 +551,7 @@ bool pass2(){
             pass2_err<<"Invalid opcode present at "<<line_no<<endl;
             continue;
         }
-    }           //END OF INTERMEDIATE FILE
+    }                   //END OF INTERMEDIATE FILE
 
     // push last text record if exist
     if(current_object_code.size() > 0) {
