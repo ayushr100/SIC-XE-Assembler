@@ -55,7 +55,7 @@ L.No. LOCCTR  BLK  LABEL     OPCODE    OPERAND           OBJECT_CODE
 53    00060   0              JLT       WLOOP             3B2FEF
 54    00063   0              RSUB                        4F0000
 55    00007   1              USE       CDATA             
-.LTORG
+56    00007   1              LTORG                       
+56    00007   1    *         =C'EOF'                     454F46
+56    0000A   1    *         =X'05'                      05
 57                           END       FIRST             
-57    00007   1    *         =C'EOF'                     454F46
-57    0000A   1    *         =X'05'                      05

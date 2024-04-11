@@ -272,7 +272,7 @@ bool pass1(string input_file){
                 ERROR_FLAG_PASS1=true;
                 continue;
             }
-            pass1_out<< "   " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
+            pass1_out<< line_no<< " " <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<endl;
 
             for(auto i:LITTAB){
                 if(i.first[0]=='*'){//this is for BASE *
@@ -280,7 +280,7 @@ bool pass1(string input_file){
                 }
                 else if(i.first[0]=='='){
                     SYMTAB[i.first] = {i.first, current_block_no, LOCCTR, 1};                           //relative label
-                    pass1_out<<line_no<<" "  <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" BYTE "<<i.first<<" "<<i.second<<" "<<endl;
+                    pass1_out<<line_no<<" "  <<decimalToTwosComplement(LOCCTR,5)<<" "<< current_block_no<<" BYTE "<<i.first<<endl;
                     if(i.first[1]=='C'){
                         LOCCTR+=i.first.length()-4;
                     }
