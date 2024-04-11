@@ -9,6 +9,10 @@ bool pass2(){
     //initialising files
     ifstream pass2_in("./../data/intermediate.txt");
     ofstream pass2_list("./../data/listing_file.txt");
+
+    pass2_list<<write_in_listing_file("L.No.", "LOCCTR", "BLK", "LABEL", "OPCODE", "OPERAND", "OBJECT_CODE")<<endl;
+    pass2_list<<"======================================================================="<<endl;
+
     ofstream pass2_obj("./../data/object_program.txt");
     ofstream pass2_err("./../data/error.txt");
 
@@ -60,7 +64,7 @@ bool pass2(){
             string header_program_length = decimalToTwosComplement(program_length,6);
             header_record += header_program_length;
             pass2_obj<<header_record<<endl;
-            pass2_list<<line<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
 
             prev_block_no = program_block_no;
 
@@ -69,7 +73,7 @@ bool pass2(){
         
         else if(opcode=="USE"){
             prev_block_no = program_block_no;
-            pass2_list<<line<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
             continue;
         }
     }
@@ -87,7 +91,7 @@ bool pass2(){
         }
 
         if(opcode == "BASE") {
-            pass2_list<<line<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
             if(SYMTAB.find(operand) != SYMTAB.end()) {
                 BASE_REGISTER_VALUE = SYMTAB[operand].value;
                 BASE_RELATIVE_ADDRESSING = 1;
@@ -115,22 +119,22 @@ bool pass2(){
         }
 
         else if(opcode == "NOBASE") {
-            pass2_list<<line<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
             BASE_RELATIVE_ADDRESSING = 0;
         }
 
         else if(opcode == "LTORG") {
-            pass2_list<<line<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
             continue;
         }
 
         else if(opcode == "EQU") {
-            pass2_list<<line<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
             continue;
         }
 
         else if(opcode == "ORG") {
-            pass2_list<<line<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
             continue;
         }
 
@@ -188,16 +192,17 @@ bool pass2(){
 
             //handle listing file
             if(operand[0]=='=') { //literal pool BYTE
-                pass2_list<<line_no<<" "<<decimalToTwosComplement(locctr, 5)<<" "<<program_block_no<<" "<<"*"<<" "<<operand<<" "<<current_object_code<<endl;
+                pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), "*", operand, "", current_object_code)<<endl;
             }
             else { // common BYTE
-                pass2_list<<line_no<<" "<<decimalToTwosComplement(locctr, 5)<<" "<<program_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<" "<<current_object_code<<endl;
+                pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, current_object_code)<<endl;
             }
 
         }
         
         else if(opcode == "WORD") {
-            pass2_list<<line<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
+
             current_object_code = decimalToTwosComplement(stoi(operand, nullptr, 10), 6);
 
             if(prev_RESW_RESB) {
@@ -223,7 +228,8 @@ bool pass2(){
         }
        
         else if(opcode == "RESW" || opcode == "RESB") {
-            pass2_list<<line<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
+
             if(current_text_record.object_code_length != 0) {
                 current_text_record.length = current_text_record.object_code_length/2;
                 TEXT_RECORDS.push_back(current_text_record);
@@ -234,7 +240,7 @@ bool pass2(){
         }
         
         else if(opcode == "USE") {
-            pass2_list<<line<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, "")<<endl;
             continue;
         }
 
@@ -347,7 +353,7 @@ bool pass2(){
             }
 
             //handle listing file
-            pass2_list<<line_no<<" "<<decimalToTwosComplement(locctr, 5)<<" "<<program_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<" "<<current_object_code<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, current_object_code)<<endl;
 
         }
 
@@ -493,7 +499,7 @@ bool pass2(){
             }
 
             //handle listing file
-            pass2_list<<line_no<<" "<<decimalToTwosComplement(locctr, 5)<<" "<<program_block_no<<" "<<label<<" "<<opcode<<" "<<operand<<" "<<current_object_code<<endl;
+            pass2_list<<write_in_listing_file(line_no, decimalToTwosComplement(locctr, 5), to_string(program_block_no), label, opcode, operand, current_object_code)<<endl;    
         }
         
         else if(opcode == "END") {
@@ -536,7 +542,7 @@ bool pass2(){
             }
 
             //handle listing file
-            pass2_list<<"     "<<label <<opcode<<" "<<operand<<" "<<current_object_code<<endl;
+            pass2_list<<write_in_listing_file(line_no, "", "", label, opcode, operand, "")<<endl;
 
             continue;
         }

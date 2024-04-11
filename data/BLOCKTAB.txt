@@ -1,3 +1,5 @@
-CBLKS 2 1000 71
-CDATA 1 b 66
-DEFAULT 0 66 0
+BLOCK_NAME	BLOCK_NO	BLOCK_LENGTH	START_ADDRESS
+========================================================
+CBLKS		2			4096				113
+CDATA		1			11				102
+DEFAULT		0			102				0
