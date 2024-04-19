@@ -18,7 +18,7 @@ struct op_code{
     int opcode_format;
 };
 
-map<string, pair<string,int8_t>> OPTAB = {
+map<string, pair<string,int>> OPTAB = {
     {"ADD",{"18",3}},
     {"ADDF",{"58",3}},
     {"ADDR",{"90",2}},
