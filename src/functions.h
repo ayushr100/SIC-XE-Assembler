@@ -605,68 +605,51 @@ string process_format2(string opcode, string operand, bool &error_flag) {
 }
 
 string write_in_listing_file(string line_no, string locctr, string program_block_no, string label, string opcode, string operand, string object_code) {
-    string line="";
-
-    int length = 0;
-    //line_no
-    length = 6 - line_no.size();
-    line+=line_no;
-    while(length--) line+=" ";
-
-    //locctr
-    length = 8 - locctr.size();
-    line+=locctr;
-    while(length--) line+=" ";
-
-    //program_block_no
-    length = 5 - program_block_no.size();
-    line+=program_block_no;
-    while(length--) line+=" ";
-
-    //label
-    length = 10 - label.size();
-    line+=label;
-    while(length--) line+=" ";
-
-    //opcode
-    length = 10 - opcode.size();
-    line+=opcode;
-    while(length--) line+=" ";
-
-    //operand
-    if(operand.size() > 18){
-        line+=operand;
-    }
-    else{
-        length = 18 - operand.size();
-        line+=operand;
-        while(length--) line+=" ";
-    }
+    stringstream ss;
     
-    //object_code
-    line+=object_code;
-    return line;
+    ss << left << setw(6) << line_no
+       << left << setw(8) << locctr
+       << left << setw(5) << program_block_no
+       << left << setw(10) << label
+       << left << setw(10) << opcode
+       << left << setw(18) << operand
+       << object_code;
+    
+    return ss.str();
 }
 
 void write_in_tables(){
     ofstream symbol_table("./../data/SYMTAB.txt");
-    symbol_table<<"SYMBOL\t\tBLOCK_NO\tVALUE\t\tFLAG"<<endl;
-    symbol_table<<"----------------------------------"<<endl;
+    symbol_table << left << setw(12) << "SYMBOL" 
+                 << left << setw(12) << "BLOCK_NO" 
+                 << left << setw(12) << "VALUE" 
+                 << left << setw(8) << "FLAG" << endl;
+    symbol_table << "------------------------------------------------" << endl;
 
     for(auto x:SYMTAB){
         char c;
         if(x.second.isValid==0) c='N';
         else if(x.second.isValid==1) c='R';
         else c='A';
-        symbol_table<<x.first<<"\t\t"<< x.second.block_no <<"\t\t\t"<<hex<<x.second.value<<"\t\t\t"<<c<<endl;
+        
+        symbol_table << left << setw(12) << x.first
+                     << left << setw(12) << x.second.block_no
+                     << left << setw(12) << uppercase << hex << x.second.value << dec << nouppercase
+                     << left << setw(8) << c << endl;
     }
 
     ofstream block_table("./../data/BLOCKTAB.txt");
-    block_table<<"BLOCK_NAME\tBLOCK_NO\tBLOCK_LENGTH\tSTART_ADDRESS"<<endl;
-    block_table<<"--------------------------------------------------------"<<endl;
+    block_table << left << setw(15) << "BLOCK_NAME" 
+                << left << setw(12) << "BLOCK_NO" 
+                << left << setw(15) << "BLOCK_LENGTH" 
+                << left << setw(15) << "START_ADDRESS" << endl;
+    block_table << "------------------------------------------------------------" << endl;
 
     for(auto x:BLOCKTABLE){
-        block_table<<x.first<<"\t\t"<<x.second.block_no<<"\t\t\t"<<x.second.block_length<<"\t\t\t\t"<<x.second.start_address<<endl;
+        block_table << left << setw(15) << x.first
+                    << left << setw(12) << x.second.block_no
+                    << left << setw(15) << x.second.block_length
+                    << left << setw(15) << x.second.start_address << endl;
     }
 }
 

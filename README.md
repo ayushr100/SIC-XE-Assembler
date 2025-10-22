@@ -31,8 +31,8 @@ From a terminal, change into the `src` directory that contains `assembler.cpp`, 
 macOS/Linux (zsh):
 
 ```
-g++ assembler.cpp -o assembler
-./assembler
+g++ assembler.cpp -o assembler.out
+./assembler.out
 ```
 
 Windows (Command Prompt or PowerShell):
